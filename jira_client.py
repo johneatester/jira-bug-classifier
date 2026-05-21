@@ -28,14 +28,13 @@ class JiraClient:
         body = {
             "jql": jql,
             "maxResults": max_results,
-            "startAt": start_at,
             "fields": fields if fields else [
                 "summary", "description", "status", "resolution", "reporter",
                 "assignee", "components", "labels", "fixVersions", "issuetype",
                 "created", "updated", "priority"
             ],
         }
-        return self._post("/rest/api/3/search", body)
+        return self._post("/rest/api/3/search/jql", body)
 
     def get_new_bugs(self, since_iso, projects=None, issue_types=None):
         """Fetch bug tickets created after since_iso (e.g. '2026-05-20 00:00')."""
