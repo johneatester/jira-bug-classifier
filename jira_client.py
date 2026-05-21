@@ -14,20 +14,28 @@ class JiraClient:
         resp.raise_for_status()
         return resp.json()
 
+    def _post(self, path, body):
+        import json
+        url = f"{self.base_url}{path}"
+        resp = requests.post(url, auth=self.auth, headers=self.headers, data=json.dumps(body), timeout=15)
+        resp.raise_for_status()
+        return resp.json()
+
     def get_issue(self, issue_key):
         return self._get(f"/rest/api/3/issue/{issue_key}")
 
     def search(self, jql, fields=None, max_results=50, start_at=0):
-        params = {
+        body = {
             "jql": jql,
             "maxResults": max_results,
             "startAt": start_at,
-            "fields": ",".join(fields) if fields else (
-                "summary,description,status,resolution,reporter,assignee,"
-                "components,labels,fixVersions,issuetype,created,updated,priority"
-            ),
+            "fields": fields if fields else [
+                "summary", "description", "status", "resolution", "reporter",
+                "assignee", "components", "labels", "fixVersions", "issuetype",
+                "created", "updated", "priority"
+            ],
         }
-        return self._get("/rest/api/3/search", params=params)
+        return self._post("/rest/api/3/search/jql", body)
 
     def get_new_bugs(self, since_iso, projects=None, issue_types=None):
         """Fetch bug tickets created after since_iso (e.g. '2026-05-20 00:00')."""
