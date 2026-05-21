@@ -24,7 +24,11 @@ class JiraClient:
         return resp.json()
 
     def get_issue(self, issue_key):
-        return self._get(f"/rest/api/3/issue/{issue_key}")
+        result = self.search(f'key = "{issue_key}"', max_results=1)
+        issues = result.get("issues", [])
+        if not issues:
+            raise ValueError(f"Issue {issue_key} not found or not accessible")
+        return issues[0]
 
     def search(self, jql, fields=None, max_results=50, start_at=0):
         body = {
