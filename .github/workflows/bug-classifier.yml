@@ -8,18 +8,32 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: bug-classifier
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   classify:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Restore state
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: bot-state-${{ github.run_number }}
+          restore-keys: bot-state-
+
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.11'
 
@@ -31,11 +45,3 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: python3 bot.py
-
-      - name: Save state
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add state.json classifications.log 2>/dev/null || true
-          git diff --staged --quiet || git commit -m "chore: update bot state [skip ci]"
-          git push
