@@ -1,0 +1,21 @@
+{
+  "jira": {
+    "base_url": "https://everaccountable.atlassian.net",
+    "email": "john@everaccountable.com",
+    "api_token": "",
+    "projects": ["QA", "DROID", "IOSX", "BB", "WEBX"],
+    "bug_issue_types": ["Bug"]
+  },
+  "slack": {
+    "webhook_url": "",
+    "channel": "#jira-bug-classification-newbug-regression-duplicate",
+    "enabled": true
+  },
+  "bot": {
+    "poll_interval_minutes": 15,
+    "lookback_hours": 24,
+    "max_related_tickets": 5,
+    "similarity_threshold_high": 0.65,
+    "similarity_threshold_low": 0.35
+  }
+}
