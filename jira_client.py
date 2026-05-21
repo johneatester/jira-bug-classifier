@@ -11,6 +11,8 @@ class JiraClient:
     def _get(self, path, params=None):
         url = f"{self.base_url}{path}"
         resp = requests.get(url, auth=self.auth, headers=self.headers, params=params, timeout=15)
+        if resp.status_code == 404:
+            raise ValueError(f"404 Not Found: {url}")
         resp.raise_for_status()
         return resp.json()
 

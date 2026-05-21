@@ -176,8 +176,11 @@ def run_once(jira, config, since_iso, state, dry_run=False):
         if key in processed:
             print(f"  Skipping {key} (already processed).")
             continue
-        result = process_ticket(jira, config, issue, dry_run=dry_run)
-        results.append(result)
+        try:
+            result = process_ticket(jira, config, issue, dry_run=dry_run)
+            results.append(result)
+        except Exception as e:
+            print(f"  [Error] Failed to process {key}: {e} — skipping.")
         processed.append(key)
 
     # Update state
