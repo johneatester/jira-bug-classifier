@@ -165,8 +165,7 @@ def run_once(jira, config, since_iso, state, dry_run=False):
         issue_types=jira_cfg.get("bug_issue_types"),
     )
     issues = data.get("issues", [])
-    total = data.get("total", 0)
-    print(f"Found {total} new bug(s).")
+    print(f"Found {len(issues)} new bug(s).")
 
     processed = state.get("processed_keys", [])
     results = []
@@ -180,7 +179,9 @@ def run_once(jira, config, since_iso, state, dry_run=False):
             result = process_ticket(jira, config, issue, dry_run=dry_run)
             results.append(result)
         except Exception as e:
-            print(f"  [Error] Failed to process {key}: {e} — skipping.")
+            import traceback
+            print(f"  [Error] Failed to process {key}: {e}")
+            traceback.print_exc()
         processed.append(key)
 
     # Update state
@@ -223,6 +224,7 @@ def main():
     parser.add_argument("--since", help="Check bugs created since this time (e.g. '2026-05-20 00:00')")
     parser.add_argument("--watch", action="store_true", help="Continuously poll for new bugs")
     parser.add_argument("--dry-run", action="store_true", help="Run without posting to Slack")
+    parser.add_argument("--test-slack", action="store_true", help="Send a test message to Slack")
     args = parser.parse_args()
 
     config = load_config()
@@ -237,7 +239,24 @@ def main():
     print("  Jira Bug Classification Bot")
     print("=" * 60)
 
-    if args.ticket:
+    if args.test_slack:
+        print("\nSending test message to Slack...")
+        slack_cfg = config.get("slack", {})
+        test_result = {
+            "ticket_id": "TEST-001",
+            "title": "Slack integration test",
+            "reported_by": "Bot",
+            "classification": "Newly Introduced Bug",
+            "confidence": "High",
+            "reasoning": "This is a test message to verify Slack is connected.",
+            "related_tickets": [],
+            "suggested_action": "No action needed — this is a test.",
+            "jira_url": "",
+        }
+        post_to_slack(slack_cfg.get("webhook_url", ""), test_result)
+        return
+
+    elif args.ticket:
         run_single_ticket(jira, config, args.ticket.upper(), dry_run=args.dry_run)
 
     elif args.watch:
